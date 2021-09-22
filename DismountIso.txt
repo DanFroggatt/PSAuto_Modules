@@ -1,0 +1,70 @@
+#-----------------------Log scriptblock being called
+
+"$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - DismountIso script called" >> $logpath
+
+
+#-----------------------Description:
+
+
+#           Dismounts a specified file on guest computer.
+#           
+#           
+#           
+#           
+
+
+#-----------------------Variables:
+
+
+#           Variable name,  object type,  file location
+
+#           $imagePath,  string (eg. "C:\InstallFile.iso"),  "C:\GuestAutomation\ConfigFiles\GuestConfig.xml".GuestConfig.Software.ExtractIso.iso
+
+
+#-----------------------Executable script begins
+
+try
+{
+    #-----------------------Do while loop will check system settings and make upto 5 attempts to configure system
+    
+    $i = 0
+    
+    Do
+    {
+        #-----------------------
+
+        
+        Dismount-DiskImage -ImagePath $imagePath
+        Start-Sleep 1
+        
+        $iso = (Get-DiskImage -ImagePath $imagePath).Attached
+        
+        $i++
+    } While ($iso -and $i -lt 5)
+    
+    If (!$iso)
+    {
+        #-----------------------Log system configuration command executed successfully
+        
+        "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - DismountIso - Executed Successfully" >> $logpath
+    }
+    
+    Else
+    {
+        #-----------------------Log system configuration command execution failed
+        
+        "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - DismountIso - Execution Failed" >> $logpath
+    }
+}
+
+#-----------------------Log error message if system configuration command fails
+
+catch
+{
+    "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - DismountIso - Execution Failed" >> $logpath
+    ($Error[0].Exception) >> $logpath
+}
+
+"" >> $logpath
+
+#-----------------------Executable script ends

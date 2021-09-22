@@ -1,0 +1,73 @@
+#-----------------------Log scriptblock being called
+
+"$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - RunInstall script called" >> $logpath
+
+
+#-----------------------Description:
+
+
+#           Starts a specified process to install software on guest computer.
+#           
+#           
+#           
+#           
+
+
+#-----------------------Variables:
+
+
+#           Variable name,  object type,  file location
+
+#           $path,  string (eg. ""),  "C:\GuestAutomation\ConfigFiles\GuestConfig.xml".GuestConfig.Software.Install.path
+
+
+#-----------------------Executable script begins
+
+try
+{
+    #-----------------------Do while loop will check system settings and make upto 5 attempts to configure system
+    
+    $i = 0
+    
+    Do
+    {
+        #-----------------------
+        
+        $process = (Start-Process -FilePath $path -PassThru).ProcessName
+        $run = ((Get-Process | ? { $_.ProcessName -eq $process}).length -eq 1)
+        
+        $i++
+    } While (!$run -and $i -lt 5)
+    
+    If ($run)
+    {
+        #-----------------------Log system configuration command executed successfully
+        
+        "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - RunInstall - Executed Successfully" >> $logpath
+        
+        while ($run)
+        {
+            $run = ((Get-Process | ? { $_.ProcessName -eq $process.TrimEnd(".exe")}).count -gt 0)
+            Start-Sleep 30
+        }
+    }
+    
+    Else
+    {
+        #-----------------------Log system configuration command execution failed
+        
+        "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - RunInstall - Execution Failed" >> $logpath
+    }
+}
+
+#-----------------------Log error message if system configuration command fails
+
+catch
+{
+    "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - RunInstall - Execution Failed" >> $logpath
+    ($Error[0].Exception) >> $logpath
+}
+
+"" >> $logpath
+
+#-----------------------Executable script ends

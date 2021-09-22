@@ -1,0 +1,134 @@
+#-----------------------Log scriptblock being called
+
+"$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - InitialiseUser script called" >> $logpath
+
+
+#-----------------------Description:
+
+
+#           Creates user object on guest computer to be added to active directory.
+#           
+#           
+#           
+#           
+
+
+#-----------------------Variables:
+
+
+#           Variable name,  object type,  file location
+
+#           $User.id,  string (eg. "A1234567"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.id
+#           $User.name,  string (eg. "Jon"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.name
+#           $User.fname,  string (eg. "Jonathan"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.fname
+#           $User.initial,  string (eg. "S"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.initial
+#           $User.lname,  string (eg. "Doe"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.lname
+#           $User.ou,  string (eg. "TG Green"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.ou
+#           $User.phone,  string (eg. "05 555 5555"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.phone
+#           $User.email,  string (eg. "jonathan.doe@nzdf.mil.nz"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.email
+#           $User.role,  string (eg. "Commading Officer"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.role
+#           $groups,  string (eg. "User,PowerUser"),  "C:\GuestAutomation\ConfigFiles\DomainController.xml".DCConfig.Users.User.'#text'
+
+
+#-----------------------Executable script begins
+
+try
+{
+    #-----------------------Do while loop will check system settings and make upto 5 attempts to configure system
+    
+    $i = 0
+    
+    Do
+    {
+        #-----------------------
+        
+            $user = @{
+            id = $User.id
+            name = $User.name
+            fname = $User.fname
+            initial = $User.initial
+            lname = $User.lname
+            phone = $User.phone
+            email = $User.email
+            role = $User.role
+            password = "P@55w0rd" | ConvertTo-SecureString -AsPlainText -Force
+            ou = (Get-ADOrganizationalUnit -Filter ('Name -eq "' + $User.ou + '"')).DistinguishedName
+            }
+        
+        $i++
+    } While ($user.id -ne $User.id -and $user.name -ne $User.name -and $user.fname -ne $User.fname -and $user.initial -ne $User.initial -and $user.lname -ne $User.lname -and $user.phone -ne $User.phone -and $user.email -ne $User.email -and $user.role -ne $User.role -and $user.ou -notmatch "OU=$User.ou" -and $i -lt 5)
+    
+    If ($user.id -eq $User.id -and $user.name -eq $User.name -and $user.fname -eq $User.fname -and $user.initial -eq $User.initial -and $user.lname -eq $User.lname -and $user.phone -eq $User.phone -and $user.email -eq $User.email -and $user.role -eq $User.role -and $user.ou -match "OU=$User.ou")
+    {
+        #-----------------------Log system configuration command executed successfully
+        
+        "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - InitialiseUser - Executed Successfully" >> $logpath
+        
+        $groups = $groups -Split ","
+        Invoke-Expression (Get-Content "C:\GuestAutomation\Modules\AddADUser.txt" -Raw)
+    }
+    
+    Else
+    {
+        #-----------------------Log system configuration command execution failed
+        
+        "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - InitialiseUser - Execution Failed" >> $logpath
+        
+        If ($user.id -ne $User.id)
+        {
+            "Set user ID - Failed" >> $logpath
+        }
+        
+        If ($user.name -ne $User.name)
+        {
+            "Set user prefered name - Failed" >> $logpath
+        }
+        
+        If ($user.fname -ne $User.fname)
+        {
+            "Set user first name - Failed" >> $logpath
+        }
+        
+        If ($user.initial -ne $User.initial)
+        {
+            "Set user middle initial - Failed" >> $logpath
+        }
+        
+        If ($user.lname -ne $User.lname)
+        {
+            "Set user last name - Failed" >> $logpath
+        }
+        
+        If ($user.phone -ne $User.phone)
+        {
+            "Set user phone number - Failed" >> $logpath
+        }
+        
+        If ($user.email -ne $User.email)
+        {
+            "Set user e-mail address - Failed" >> $logpath
+        }
+        
+        If ($user.role -ne $User.role)
+        {
+            "Set user appointment - Failed" >> $logpath
+        }
+        
+        If ($user.ou -notmatch "OU=$User.ou")
+        {
+            "Set user OU - Failed" >> $logpath
+        }
+    }
+}
+
+#-----------------------Log error message if system configuration command fails
+
+catch
+{
+    "$(Get-Date -Format "d-M-yyyy HH:mm:ss.ffff") - InitialiseUser - Execution Failed" >> $logpath
+    ($Error[0].Exception) >> $logpath
+}
+
+"" >> $logpath
+
+#-----------------------Executable script ends
